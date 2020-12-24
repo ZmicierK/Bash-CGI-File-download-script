@@ -1,0 +1,32 @@
+#!/bin/bash
+
+echo Content-type: text/plain
+set $QUERY_STRING
+patch=""
+serv2=Zmicier@127.0.0.2
+#Set the field separator to '='
+IFS="${OIFS}="
+set $1
+
+case $1 in
+patch)
+    patch=$2
+    if ssh $serv2 [ -f $patch ]; then
+	#Setting "Content-Disposition" to get right filename, if wget used with "--content-disposition" parameter
+	echo "Content-Disposition: attachment; filename=$(basename -- $patch)" 
+	echo Content-Transfer-Encoding: binary
+	echo Content-Length: `stat -c %s $patch`
+	echo ""
+	ssh $serv2 cat $patch
+    else
+	echo ""
+	echo Error. File $patch does not exist.
+    fi
+;;
+*)
+    echo ""
+    echo Error. Unrecognized variable: $1
+    echo Usage: %server-ip%/getFile?path=%required file path%
+    echo Example: http://127.0.0.1/getFile?path=/bin/bash
+;;
+esac
